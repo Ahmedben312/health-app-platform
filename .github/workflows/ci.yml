@@ -1,0 +1,47 @@
+# .github/workflows/ci.yml
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ["backend", "frontend", "shared"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          cd ${{ matrix.project }}
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd ${{ matrix.project }}
+          npm test
+
+      - name: Lint code
+        run: |
+          cd ${{ matrix.project }}
+          npm run lint
+
+      - name: Security scan
+        uses: shiftleftsecurity/scan-action@v1
+        with:
+          output: reports
+
+      - name: Build Docker image
+        run: |
+          cd ${{ matrix.project }}
+          docker build -t ${{ matrix.project }}:ci .
