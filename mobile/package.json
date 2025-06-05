@@ -1,0 +1,26 @@
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-navigation/native": "^6.1.10",
+    "@react-navigation/stack": "^6.3.24",
+    "expo": "^53.0.9",
+    "expo-status-bar": "~1.11.0",
+    "react": "18.2.0",
+    "react-native": "^0.73.11",
+    "react-native-gesture-handler": "~2.14.0",
+    "shared": "file:../shared"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.4.2"
+  }
+}

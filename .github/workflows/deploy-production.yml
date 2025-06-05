@@ -1,0 +1,37 @@
+# .github/workflows/deploy-production.yml
+name: Deploy to Production
+
+on:
+  workflow_dispatch: # Requires manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PRODUCTION_SERVER_HOST }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /var/www/health-app
+            git pull origin main
+            docker-compose -f docker-compose.production.yml up -d --build
+            npm run test:smoke
+
+      - name: Rollback on failure
+        if: ${{ failure() }}
+        run: |
+          ssh -i ${{ secrets.PRODUCTION_SSH_KEY }} \
+            deploy@${{ secrets.PRODUCTION_SERVER_HOST }} \
+            "cd /var/www/health-app && docker-compose down && docker-compose up -d previous_version"
+
+      - name: Notify team
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: ${{ contains(steps.deploy.outcome, 'failure') && 'Production deployment failed! :fire:' || 'Production deployment successful! :tada:' }}
